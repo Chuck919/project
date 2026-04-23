@@ -1,22 +1,17 @@
-DROP TABLE IF EXISTS GroupMembers;
-DROP TABLE IF EXISTS StudyGroups;
-DROP TABLE IF EXISTS Courses;
-DROP TABLE IF EXISTS Students;
-
-CREATE TABLE Students (
+CREATE TABLE IF NOT EXISTS Students (
     student_id INT PRIMARY KEY,
     name VARCHAR(80) NOT NULL,
     email VARCHAR(120) NOT NULL UNIQUE,
     major VARCHAR(80) NOT NULL
 );
 
-CREATE TABLE Courses (
+CREATE TABLE IF NOT EXISTS Courses (
     course_id INT PRIMARY KEY,
     course_name VARCHAR(120) NOT NULL,
     instructor VARCHAR(80) NOT NULL
 );
 
-CREATE TABLE StudyGroups (
+CREATE TABLE IF NOT EXISTS StudyGroups (
     group_id INT AUTO_INCREMENT PRIMARY KEY,
     course_id INT NOT NULL,
     host_student_id INT NOT NULL,
@@ -31,7 +26,7 @@ CREATE TABLE StudyGroups (
         ON DELETE CASCADE
 );
 
-CREATE TABLE GroupMembers (
+    CREATE TABLE IF NOT EXISTS GroupMembers (
     group_id INT NOT NULL,
     student_id INT NOT NULL,
     joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

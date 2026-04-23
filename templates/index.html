@@ -132,7 +132,7 @@
                 <p><span class="pill">Connected</span> Host: {{ config.host }} | Database: {{ config.database }}</p>
             {% else %}
                 <p><span class="pill" style="background:#fde8e8;color:#812b2b;">Not Connected</span></p>
-                <p class="muted">Set DB_PASS (and optionally DB_HOST, DB_PORT, DB_USER, DB_NAME), then refresh.</p>
+                <p class="muted">Set DB_PASS (and optionally DB_HOST, DB_PORT, DB_USER, DB_NAME), or provide credentials in db_credentials.py/db.credentials.py, then refresh.</p>
             {% endif %}
             <p class="muted">Setup pages: <a href="{{ url_for('setup') }}">setup</a> and <a href="{{ url_for('test_connection') }}">test connection</a></p>
         </div>

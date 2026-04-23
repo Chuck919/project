@@ -18,6 +18,14 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-me-in-production")
 
 
+def is_missing_table_error(exc: Exception) -> bool:
+    return isinstance(exc, Error) and getattr(exc, "errno", None) == 1146
+
+
+def missing_table_message() -> str:
+    return "Database tables are missing. Open /setup and click Create/Reset Schema + Seed Data."
+
+
 def read_db_config_file(path: Path) -> dict[str, Any]:
     namespace: dict[str, Any] = {}
     exec(path.read_text(encoding="utf-8"), namespace)
@@ -59,6 +67,7 @@ def get_db_connection() -> Any:
             database=cfg["database"],
             port=cfg["port"],
             autocommit=False,
+            use_pure=True,
         )
     except Error as exc:
         raise RuntimeError(f"Database connection failed: {exc}") from exc
@@ -118,6 +127,27 @@ def run_sql_file(conn: Any, file_path: Path) -> None:
         cursor.close()
 
 
+def ensure_database_seeded(conn: Any) -> bool:
+    cfg = db_config()
+    rows = query_rows(
+        conn,
+        """
+        SELECT COUNT(*) AS table_count
+        FROM information_schema.tables
+        WHERE table_schema = %s
+          AND table_name IN ('Students', 'Courses', 'StudyGroups', 'GroupMembers')
+        """,
+        (cfg["database"],),
+    )
+    table_count = int(rows[0]["table_count"]) if rows else 0
+    if table_count < 4:
+        run_sql_file(conn, BASE_DIR / "sql" / "schema.sql")
+        run_sql_file(conn, BASE_DIR / "sql" / "seed.sql")
+        conn.commit()
+        return True
+    return False
+
+
 @app.route("/", methods=["GET", "POST"])
 def index() -> str:
     messages: list[str] = []
@@ -155,6 +185,16 @@ def index() -> str:
         connection_ok = True
     except Exception as exc:
         errors.append(str(exc))
+
+    if connection_ok and conn is not None:
+        try:
+            if ensure_database_seeded(conn):
+                messages.append("Database schema and seed data were initialized automatically.")
+        except Exception as exc:
+            if is_missing_table_error(exc):
+                errors.append(missing_table_message())
+            else:
+                errors.append(str(exc))
 
     if connection_ok and conn is not None and request.method == "POST":
         action = (request.form.get("action") or "").strip()
@@ -343,104 +383,113 @@ def index() -> str:
         except Exception as exc:
             if transaction_started:
                 conn.rollback()
-            errors.append(str(exc))
+            if is_missing_table_error(exc):
+                errors.append(missing_table_message())
+            else:
+                errors.append(str(exc))
 
     if connection_ok and conn is not None:
-        courses = query_rows(conn, "SELECT course_id, course_name FROM Courses ORDER BY course_id")
+        try:
+            courses = query_rows(conn, "SELECT course_id, course_name FROM Courses ORDER BY course_id")
 
-        search_groups = query_rows(
-            conn,
-            """
-            SELECT
-                sg.group_id,
-                c.course_id,
-                c.course_name,
-                sg.meeting_time,
-                sg.location,
-                sg.notes,
-                host.name AS host_name,
-                COUNT(gm.student_id) AS member_count
-            FROM StudyGroups sg
-            JOIN Courses c ON c.course_id = sg.course_id
-            JOIN Students host ON host.student_id = sg.host_student_id
-            LEFT JOIN GroupMembers gm ON gm.group_id = sg.group_id
-            WHERE (%s = '' OR c.course_name LIKE CONCAT('%', %s, '%') OR CAST(c.course_id AS CHAR) = %s)
-              AND (%s = '' OR sg.location LIKE CONCAT('%', %s, '%'))
-              AND (%s = '' OR sg.meeting_time >= %s)
-            GROUP BY sg.group_id, c.course_id, c.course_name, sg.meeting_time, sg.location, sg.notes, host.name
-            ORDER BY sg.meeting_time ASC
-            """,
-            (
-                search_course_filter,
-                search_course_filter,
-                search_course_filter,
-                search_location_filter,
-                search_location_filter,
-                meeting_after_sql,
-                meeting_after_sql,
-            ),
-        )
-
-        members_group_id = parse_positive_int(selected_members_group)
-        if members_group_id is not None:
-            group_members = query_rows(
+            search_groups = query_rows(
                 conn,
                 """
-                SELECT s.student_id, s.name, s.email, s.major
-                FROM GroupMembers gm
-                JOIN Students s ON s.student_id = gm.student_id
-                WHERE gm.group_id = %s
-                ORDER BY s.name ASC
-                """,
-                (members_group_id,),
-            )
-
-        host_student_id = parse_positive_int(selected_host_student)
-        if host_student_id is not None:
-            hosted_groups = query_rows(
-                conn,
-                """
-                SELECT sg.group_id, c.course_name, sg.meeting_time, sg.location
+                SELECT
+                    sg.group_id,
+                    c.course_id,
+                    c.course_name,
+                    sg.meeting_time,
+                    sg.location,
+                    sg.notes,
+                    host.name AS host_name,
+                    COUNT(gm.student_id) AS member_count
                 FROM StudyGroups sg
                 JOIN Courses c ON c.course_id = sg.course_id
-                WHERE sg.host_student_id = %s
+                JOIN Students host ON host.student_id = sg.host_student_id
+                LEFT JOIN GroupMembers gm ON gm.group_id = sg.group_id
+                WHERE (%s = '' OR c.course_name LIKE CONCAT('%', %s, '%') OR CAST(c.course_id AS CHAR) = %s)
+                  AND (%s = '' OR sg.location LIKE CONCAT('%', %s, '%'))
+                  AND (%s = '' OR sg.meeting_time >= %s)
+                GROUP BY sg.group_id, c.course_id, c.course_name, sg.meeting_time, sg.location, sg.notes, host.name
                 ORDER BY sg.meeting_time ASC
                 """,
-                (host_student_id,),
+                (
+                    search_course_filter,
+                    search_course_filter,
+                    search_course_filter,
+                    search_location_filter,
+                    search_location_filter,
+                    meeting_after_sql,
+                    meeting_after_sql,
+                ),
             )
 
-        if current_student is not None:
-            my_joined_groups = query_rows(
+            members_group_id = parse_positive_int(selected_members_group)
+            if members_group_id is not None:
+                group_members = query_rows(
+                    conn,
+                    """
+                    SELECT s.student_id, s.name, s.email, s.major
+                    FROM GroupMembers gm
+                    JOIN Students s ON s.student_id = gm.student_id
+                    WHERE gm.group_id = %s
+                    ORDER BY s.name ASC
+                    """,
+                    (members_group_id,),
+                )
+
+            host_student_id = parse_positive_int(selected_host_student)
+            if host_student_id is not None:
+                hosted_groups = query_rows(
+                    conn,
+                    """
+                    SELECT sg.group_id, c.course_name, sg.meeting_time, sg.location
+                    FROM StudyGroups sg
+                    JOIN Courses c ON c.course_id = sg.course_id
+                    WHERE sg.host_student_id = %s
+                    ORDER BY sg.meeting_time ASC
+                    """,
+                    (host_student_id,),
+                )
+
+            if current_student is not None:
+                my_joined_groups = query_rows(
+                    conn,
+                    """
+                    SELECT sg.group_id, c.course_name, sg.meeting_time, sg.location, host.name AS host_name
+                    FROM GroupMembers gm
+                    JOIN StudyGroups sg ON sg.group_id = gm.group_id
+                    JOIN Courses c ON c.course_id = sg.course_id
+                    JOIN Students host ON host.student_id = sg.host_student_id
+                    WHERE gm.student_id = %s
+                    ORDER BY sg.meeting_time ASC
+                    """,
+                    (int(current_student["student_id"]),),
+                )
+
+            min_members = parse_non_negative_int(min_members_input)
+            if min_members is None:
+                min_members = 0
+
+            group_size_report = query_rows(
                 conn,
                 """
-                SELECT sg.group_id, c.course_name, sg.meeting_time, sg.location, host.name AS host_name
-                FROM GroupMembers gm
-                JOIN StudyGroups sg ON sg.group_id = gm.group_id
+                SELECT c.course_name, sg.group_id, COUNT(gm.student_id) AS member_total
+                FROM StudyGroups sg
                 JOIN Courses c ON c.course_id = sg.course_id
-                JOIN Students host ON host.student_id = sg.host_student_id
-                WHERE gm.student_id = %s
-                ORDER BY sg.meeting_time ASC
+                LEFT JOIN GroupMembers gm ON gm.group_id = sg.group_id
+                GROUP BY c.course_name, sg.group_id
+                HAVING COUNT(gm.student_id) >= %s
+                ORDER BY member_total DESC, c.course_name ASC
                 """,
-                (int(current_student["student_id"]),),
+                (min_members,),
             )
-
-        min_members = parse_non_negative_int(min_members_input)
-        if min_members is None:
-            min_members = 0
-
-        group_size_report = query_rows(
-            conn,
-            """
-            SELECT c.course_name, sg.group_id, COUNT(gm.student_id) AS member_total
-            FROM StudyGroups sg
-            JOIN Courses c ON c.course_id = sg.course_id
-            LEFT JOIN GroupMembers gm ON gm.group_id = sg.group_id
-            GROUP BY c.course_name, sg.group_id
-            HAVING COUNT(gm.student_id) >= %s
-            ORDER BY member_total DESC, c.course_name ASC
-            """,
-            (min_members,),
-        )
+        except Exception as exc:
+            if is_missing_table_error(exc):
+                errors.append(missing_table_message())
+            else:
+                errors.append(str(exc))
 
     if conn is not None:
         conn.close()
@@ -507,7 +556,10 @@ def setup() -> str:
             )
 
     except Exception as exc:
-        errors.append(str(exc))
+        if is_missing_table_error(exc):
+            errors.append(missing_table_message())
+        else:
+            errors.append(str(exc))
 
     finally:
         if conn is not None:
