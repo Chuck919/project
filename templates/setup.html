@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Study Group Finder Setup</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f6f9;
+            margin: 0;
+            color: #10222f;
+        }
+        .wrap {
+            max-width: 840px;
+            margin: 24px auto;
+            background: #ffffff;
+            border: 1px solid #d3dde4;
+            border-radius: 12px;
+            padding: 18px;
+        }
+        .status {
+            background: #e5f7f0;
+            border: 1px solid #bbead8;
+            color: #175a43;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        .error {
+            background: #fde8e8;
+            border: 1px solid #f5b9b9;
+            color: #812b2b;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #0a8f6a;
+            color: #ffffff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Study Group Finder: Database Setup</h1>
+        <p>Host: {{ config.host }} | Database: {{ config.database }}</p>
+
+        {% for error in errors %}
+            <div class="error">{{ error }}</div>
+        {% endfor %}
+
+        {% for item in status %}
+            <div class="status">{{ item }}</div>
+        {% endfor %}
+
+        <form method="post" action="{{ url_for('setup') }}">
+            <input type="hidden" name="action" value="setup_db">
+            <button type="submit">Create/Reset Schema + Seed Data</button>
+        </form>
+
+        <p><a href="{{ url_for('index') }}">Go to main app</a> | <a href="{{ url_for('test_connection') }}">Run connection test</a></p>
+    </div>
+</body>
+</html>

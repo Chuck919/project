@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Study Group Finder</title>
+    <style>
+        :root {
+            --bg: #f3f6f9;
+            --card: #ffffff;
+            --ink: #10222f;
+            --muted: #4e6270;
+            --line: #d3dde4;
+            --accent: #0a8f6a;
+            --warn: #9f2d2d;
+        }
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #e9f2fb 0%, #f7fbff 60%, #ffffff 100%);
+            color: var(--ink);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        h1, h2 {
+            margin-top: 0;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        input, select, textarea, button {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            border: 1px solid #b7c7d4;
+            border-radius: 8px;
+            font: inherit;
+        }
+        textarea {
+            min-height: 70px;
+        }
+        button {
+            background: var(--accent);
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        button.secondary {
+            background: #2b6aa8;
+        }
+        button.warn {
+            background: var(--warn);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        th, td {
+            border: 1px solid var(--line);
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #eef4f8;
+        }
+        .pill {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 3px 10px;
+            background: #e4f6f0;
+            color: #0a6a50;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .error {
+            padding: 10px;
+            border-radius: 8px;
+            background: #fde8e8;
+            color: #812b2b;
+            border: 1px solid #f5b9b9;
+            margin-bottom: 8px;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            background: #e5f7f0;
+            color: #175a43;
+            border: 1px solid #bbead8;
+            margin-bottom: 8px;
+        }
+        .muted {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .inline-form {
+            display: inline-block;
+            margin: 0;
+        }
+        .inline-form input[type="hidden"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Study Group Finder</h1>
+        <p class="muted">Database Systems Project: Flask + MySQL implementation with sessions, updates, and dynamic queries.</p>
+
+        <div class="card">
+            <h2>Connection Status</h2>
+            {% if connection_ok %}
+                <p><span class="pill">Connected</span> Host: {{ config.host }} | Database: {{ config.database }}</p>
+            {% else %}
+                <p><span class="pill" style="background:#fde8e8;color:#812b2b;">Not Connected</span></p>
+                <p class="muted">Set DB_PASS (and optionally DB_HOST, DB_PORT, DB_USER, DB_NAME), then refresh.</p>
+            {% endif %}
+            <p class="muted">Setup pages: <a href="{{ url_for('setup') }}">setup</a> and <a href="{{ url_for('test_connection') }}">test connection</a></p>
+        </div>
+
+        {% for error in errors %}
+            <div class="error">{{ error }}</div>
+        {% endfor %}
+
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+
+        <div class="card">
+            <h2>Student Session</h2>
+            {% if not current_student %}
+                <div class="grid">
+                    <form method="post" action="{{ url_for('index') }}">
+                        <input type="hidden" name="action" value="register">
+                        <h3>Register Student</h3>
+                        <label for="reg_student_id">Student ID</label>
+                        <input id="reg_student_id" name="student_id" type="number" min="1" required>
+
+                        <label for="reg_name">Name</label>
+                        <input id="reg_name" name="name" type="text" maxlength="80" required>
+
+                        <label for="reg_email">Email</label>
+                        <input id="reg_email" name="email" type="email" maxlength="120" required>
+
+                        <label for="reg_major">Major</label>
+                        <input id="reg_major" name="major" type="text" maxlength="80" required>
+
+                        <button type="submit">Register</button>
+                    </form>
+
+                    <form method="post" action="{{ url_for('index') }}">
+                        <input type="hidden" name="action" value="login">
+                        <h3>Login</h3>
+                        <label for="login_student_id">Student ID</label>
+                        <input id="login_student_id" name="student_id" type="number" min="1" required>
+
+                        <label for="login_email">Email</label>
+                        <input id="login_email" name="email" type="email" maxlength="120" required>
+
+                        <button type="submit">Login</button>
+                    </form>
+                </div>
+            {% else %}
+                <p>
+                    <span class="pill">Active Session</span>
+                    {{ current_student.name }}
+                    (student_id {{ current_student.student_id }},
+                    {{ current_student.email }},
+                    major: {{ current_student.major }})
+                </p>
+
+                <div class="grid">
+                    <form method="post" action="{{ url_for('index') }}">
+                        <input type="hidden" name="action" value="update_major">
+                        <h3>Update Major</h3>
+                        <label for="major">New Major</label>
+                        <input id="major" name="major" type="text" maxlength="80" required>
+                        <button class="secondary" type="submit">Update</button>
+                    </form>
+
+                    <form method="post" action="{{ url_for('index') }}">
+                        <input type="hidden" name="action" value="logout">
+                        <h3>Logout Session</h3>
+                        <p class="muted">Ends current session and clears student login.</p>
+                        <button class="warn" type="submit">Logout</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Create Study Group</h2>
+            {% if not current_student %}
+                <p class="muted">Login is required to create groups.</p>
+            {% else %}
+                <form method="post" class="grid" action="{{ url_for('index') }}">
+                    <input type="hidden" name="action" value="create_group">
+
+                    <div>
+                        <label for="course_id">Course</label>
+                        <select id="course_id" name="course_id" required>
+                            <option value="">Select course</option>
+                            {% for course in courses %}
+                                <option value="{{ course.course_id }}">
+                                    {{ course.course_id }} - {{ course.course_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="meeting_time">Meeting Time</label>
+                        <input id="meeting_time" name="meeting_time" type="datetime-local" required>
+                    </div>
+
+                    <div>
+                        <label for="location">Location</label>
+                        <input id="location" name="location" type="text" maxlength="120" required>
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" name="notes" maxlength="255"></textarea>
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <button type="submit">Create Group</button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Find Study Groups (Dynamic Query 1)</h2>
+            <form method="get" class="grid" action="{{ url_for('index') }}">
+                <div>
+                    <label for="course_filter">Course Name or ID</label>
+                    <input id="course_filter" name="course_filter" type="text" value="{{ search_course_filter }}">
+                </div>
+                <div>
+                    <label for="location_filter">Location Contains</label>
+                    <input id="location_filter" name="location_filter" type="text" value="{{ search_location_filter }}">
+                </div>
+                <div>
+                    <label for="meeting_after">Meeting After</label>
+                    <input id="meeting_after" name="meeting_after" type="datetime-local" value="{{ meeting_after_input }}">
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <button type="submit">Run Search</button>
+                </div>
+            </form>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Group ID</th>
+                        <th>Course</th>
+                        <th>Meeting</th>
+                        <th>Location</th>
+                        <th>Host</th>
+                        <th>Members</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if search_groups|length == 0 %}
+                        <tr><td colspan="7">No groups found.</td></tr>
+                    {% else %}
+                        {% for group in search_groups %}
+                            <tr>
+                                <td>{{ group.group_id }}</td>
+                                <td>{{ group.course_id }} - {{ group.course_name }}</td>
+                                <td>{{ group.meeting_time }}</td>
+                                <td>{{ group.location }}</td>
+                                <td>{{ group.host_name }}</td>
+                                <td>{{ group.member_count }}</td>
+                                <td>
+                                    <a href="{{ url_for('index', members_group_id=group.group_id, host_student_id=selected_host_student, course_filter=search_course_filter, location_filter=search_location_filter, meeting_after=meeting_after_input, min_members=min_members_input) }}">Members</a>
+                                    {% if current_student %}
+                                        <form method="post" class="inline-form" action="{{ url_for('index') }}">
+                                            <input type="hidden" name="action" value="join_group">
+                                            <input type="hidden" name="group_id" value="{{ group.group_id }}">
+                                            <button class="secondary" type="submit">Join</button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>View Group Members (Dynamic Query 2)</h2>
+                <form method="get" action="{{ url_for('index') }}">
+                    <label for="members_group_id">Group ID</label>
+                    <input id="members_group_id" name="members_group_id" type="number" min="1" value="{{ selected_members_group }}" required>
+                    <input type="hidden" name="host_student_id" value="{{ selected_host_student }}">
+                    <input type="hidden" name="course_filter" value="{{ search_course_filter }}">
+                    <input type="hidden" name="location_filter" value="{{ search_location_filter }}">
+                    <input type="hidden" name="meeting_after" value="{{ meeting_after_input }}">
+                    <input type="hidden" name="min_members" value="{{ min_members_input }}">
+                    <button type="submit">View Members</button>
+                </form>
+
+                <table>
+                    <thead>
+                        <tr><th>Student ID</th><th>Name</th><th>Email</th><th>Major</th></tr>
+                    </thead>
+                    <tbody>
+                        {% if group_members|length == 0 %}
+                            <tr><td colspan="4">No members found or group not selected.</td></tr>
+                        {% else %}
+                            {% for member in group_members %}
+                                <tr>
+                                    <td>{{ member.student_id }}</td>
+                                    <td>{{ member.name }}</td>
+                                    <td>{{ member.email }}</td>
+                                    <td>{{ member.major }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>Groups By Host (Dynamic Query 3)</h2>
+                <form method="get" action="{{ url_for('index') }}">
+                    <label for="host_student_id">Host Student ID</label>
+                    <input id="host_student_id" name="host_student_id" type="number" min="1" value="{{ selected_host_student if selected_host_student else (current_student.student_id if current_student else '') }}" required>
+                    <input type="hidden" name="members_group_id" value="{{ selected_members_group }}">
+                    <input type="hidden" name="course_filter" value="{{ search_course_filter }}">
+                    <input type="hidden" name="location_filter" value="{{ search_location_filter }}">
+                    <input type="hidden" name="meeting_after" value="{{ meeting_after_input }}">
+                    <input type="hidden" name="min_members" value="{{ min_members_input }}">
+                    <button type="submit">View Hosted Groups</button>
+                </form>
+
+                <table>
+                    <thead>
+                        <tr><th>Group ID</th><th>Course</th><th>Meeting</th><th>Location</th></tr>
+                    </thead>
+                    <tbody>
+                        {% if hosted_groups|length == 0 %}
+                            <tr><td colspan="4">No hosted groups found or host not selected.</td></tr>
+                        {% else %}
+                            {% for group in hosted_groups %}
+                                <tr>
+                                    <td>{{ group.group_id }}</td>
+                                    <td>{{ group.course_name }}</td>
+                                    <td>{{ group.meeting_time }}</td>
+                                    <td>{{ group.location }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>My Joined Groups (Dynamic Query 4)</h2>
+            {% if not current_student %}
+                <p class="muted">Login required to view your joined groups.</p>
+            {% else %}
+                <table>
+                    <thead>
+                        <tr><th>Group ID</th><th>Course</th><th>Meeting</th><th>Location</th><th>Host</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        {% if my_joined_groups|length == 0 %}
+                            <tr><td colspan="6">You have not joined any groups yet.</td></tr>
+                        {% else %}
+                            {% for group in my_joined_groups %}
+                                <tr>
+                                    <td>{{ group.group_id }}</td>
+                                    <td>{{ group.course_name }}</td>
+                                    <td>{{ group.meeting_time }}</td>
+                                    <td>{{ group.location }}</td>
+                                    <td>{{ group.host_name }}</td>
+                                    <td>
+                                        <form method="post" class="inline-form" action="{{ url_for('index') }}">
+                                            <input type="hidden" name="action" value="leave_group">
+                                            <input type="hidden" name="group_id" value="{{ group.group_id }}">
+                                            <button class="warn" type="submit">Leave</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Group Size Report (Dynamic Query 5)</h2>
+            <form method="get" class="grid" action="{{ url_for('index') }}">
+                <div>
+                    <label for="min_members">Minimum Group Members</label>
+                    <input id="min_members" name="min_members" type="number" min="0" value="{{ min_members_input if min_members_input else '0' }}">
+                </div>
+                <div>
+                    <input type="hidden" name="members_group_id" value="{{ selected_members_group }}">
+                    <input type="hidden" name="host_student_id" value="{{ selected_host_student }}">
+                    <input type="hidden" name="course_filter" value="{{ search_course_filter }}">
+                    <input type="hidden" name="location_filter" value="{{ search_location_filter }}">
+                    <input type="hidden" name="meeting_after" value="{{ meeting_after_input }}">
+                    <button type="submit">Run Report</button>
+                </div>
+            </form>
+
+            <table>
+                <thead>
+                    <tr><th>Course</th><th>Group ID</th><th>Total Members</th></tr>
+                </thead>
+                <tbody>
+                    {% if group_size_report|length == 0 %}
+                        <tr><td colspan="3">No groups satisfy the current minimum member filter.</td></tr>
+                    {% else %}
+                        {% for row in group_size_report %}
+                            <tr>
+                                <td>{{ row.course_name }}</td>
+                                <td>{{ row.group_id }}</td>
+                                <td>{{ row.member_total }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

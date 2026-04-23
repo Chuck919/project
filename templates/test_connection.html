@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flask MySQL Connection Test</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f6f8fb;
+            color: #162733;
+            margin: 0;
+            padding: 24px;
+        }
+        .panel {
+            max-width: 760px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #d6e0e6;
+            border-radius: 12px;
+            padding: 18px;
+        }
+        .ok {
+            background: #e5f7f0;
+            color: #175a43;
+            border: 1px solid #bbead8;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .bad {
+            background: #fde8e8;
+            color: #812b2b;
+            border: 1px solid #f5b9b9;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 12px;
+        }
+        th, td {
+            border: 1px solid #d6e0e6;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background: #eff4f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>Flask MySQL Connection Test</h1>
+        <p>Host: {{ config.host }} | Database target: {{ config.database }}</p>
+
+        {% if error_message %}
+            <div class="bad">{{ error_message }}</div>
+        {% else %}
+            <div class="ok">{{ connection_message }}</div>
+            <table>
+                <tr><th>Server Time</th><td>{{ server_time }}</td></tr>
+                <tr><th>Current Database</th><td>{{ current_database }}</td></tr>
+            </table>
+        {% endif %}
+
+        <p><a href="{{ url_for('index') }}">Back to main app</a> | <a href="{{ url_for('setup') }}">Setup page</a></p>
+    </div>
+</body>
+</html>

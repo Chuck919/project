@@ -1,0 +1,7 @@
+db.credentials.php
+db_credentials.py
+__pycache__/
+.venv/
+venv/
+mariadb-data/
+~$*.docx
