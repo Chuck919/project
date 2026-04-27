@@ -3,454 +3,1352 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Study Group Finder</title>
+    <title>Study Group Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f3f6f9;
-            --card: #ffffff;
-            --ink: #10222f;
-            --muted: #4e6270;
-            --line: #d3dde4;
-            --accent: #0a8f6a;
-            --warn: #9f2d2d;
+            --ink: #152329;
+            --muted: #50646d;
+            --surface: #ffffff;
+            --surface-soft: #f8fbfc;
+            --line: #d7e3e8;
+            --brand: #0e8f83;
+            --brand-strong: #0a756b;
+            --accent: #ff8d4e;
+            --danger: #b53a2f;
+            --shadow: 0 18px 42px rgba(16, 34, 47, 0.09);
         }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            background: linear-gradient(180deg, #e9f2fb 0%, #f7fbff 60%, #ffffff 100%);
             color: var(--ink);
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-family: "Manrope", "Trebuchet MS", sans-serif;
+            background:
+                radial-gradient(circle at 15% 10%, #d9f5ef 0%, rgba(217, 245, 239, 0) 35%),
+                radial-gradient(circle at 85% 12%, #ffe7d8 0%, rgba(255, 231, 216, 0) 33%),
+                linear-gradient(170deg, #f2f8fb 0%, #fcfffe 55%, #eef6f8 100%);
+            min-height: 100vh;
         }
-        .container {
-            max-width: 1080px;
+
+        .shell {
+            max-width: 1180px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 24px 16px 40px;
         }
-        .card {
-            background: var(--card);
+
+        .topbar {
+            background: var(--surface);
             border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 14px;
+            align-items: center;
+            animation: enter 320ms ease-out;
+        }
+
+        .eyebrow {
+            margin: 0;
+            color: var(--brand-strong);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: "Space Grotesk", "Franklin Gothic Medium", sans-serif;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: clamp(28px, 5vw, 40px);
+            margin-top: 4px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        h3 {
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .topbar-sub {
+            margin: 8px 0 0;
+            color: var(--muted);
+        }
+
+        .chip-wrap {
+            display: grid;
+            gap: 8px;
+            justify-items: end;
+        }
+
+        .chip {
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid transparent;
+            background: #edf4f7;
+            color: #315261;
+        }
+
+        .chip.connected {
+            background: #daf4ee;
+            color: #0e5e55;
+            border-color: #a6e4d7;
+        }
+
+        .chip.disconnected {
+            background: #fce9e6;
+            color: #8b2b23;
+            border-color: #f3c0bb;
+        }
+
+        .tabs {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            appearance: none;
+            border: 1px solid #bfd2da;
             border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
+            padding: 10px 14px;
+            background: #eff6f8;
+            color: #21414f;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 140ms ease, background 140ms ease, color 140ms ease;
         }
-        h1, h2 {
-            margin-top: 0;
+
+        .tab-btn:hover {
+            transform: translateY(-1px);
+            background: #e6f2f6;
         }
-        .grid {
+
+        .tab-btn.active {
+            background: linear-gradient(120deg, var(--brand) 0%, #0ca579 100%);
+            border-color: transparent;
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(14, 143, 131, 0.28);
+        }
+
+        .flash-stack {
+            margin: 14px 0;
+            display: grid;
+            gap: 8px;
+        }
+
+        .flash {
+            border-radius: 12px;
+            border: 1px solid;
+            padding: 10px 14px;
+            font-weight: 600;
+            animation: slide-in 240ms ease;
+        }
+
+        .flash.info {
+            background: #edf8ff;
+            color: #1d5b83;
+            border-color: #c8e5f8;
+        }
+
+        .flash.success {
+            background: #e7f9ef;
+            color: #1c6d52;
+            border-color: #b9ebd1;
+        }
+
+        .flash.error {
+            background: #fdebea;
+            color: #8f2f28;
+            border-color: #f3c4bf;
+        }
+
+        .panel {
+            display: none;
+            margin-top: 14px;
+            animation: fade-up 220ms ease;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-copy {
+            color: var(--muted);
+            margin-top: 8px;
+            max-width: 760px;
+            line-height: 1.55;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            align-items: end;
+        }
+
+        .split {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 12px;
         }
+
         label {
             display: block;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 4px;
+            color: #23404c;
         }
-        input, select, textarea, button {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 8px;
-            border: 1px solid #b7c7d4;
-            border-radius: 8px;
-            font: inherit;
-        }
-        textarea {
-            min-height: 70px;
-        }
+
+        input,
+        select,
+        textarea,
         button {
-            background: var(--accent);
-            color: #ffffff;
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid #c4d7df;
+            padding: 10px 12px;
+            font: inherit;
+            background: #ffffff;
+        }
+
+        textarea {
+            min-height: 88px;
+            resize: vertical;
+        }
+
+        button {
             border: none;
+            background: linear-gradient(120deg, var(--brand) 0%, #1ea96d 100%);
+            color: #ffffff;
+            font-weight: 800;
             cursor: pointer;
+            transition: transform 140ms ease, filter 140ms ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.04);
+        }
+
+        button.secondary {
+            background: linear-gradient(120deg, #2a6f9f 0%, #2a8cc4 100%);
+        }
+
+        button.warn {
+            background: linear-gradient(120deg, #b53a2f 0%, #d84a3b 100%);
+        }
+
+        .group-grid {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+        }
+
+        .group-card {
+            border: 1px solid #d3e0e6;
+            border-radius: 14px;
+            padding: 12px;
+            background: var(--surface-soft);
+        }
+
+        .group-card.newly-created {
+            border-color: #7fdcc0;
+            box-shadow: 0 0 0 2px rgba(14, 143, 131, 0.16);
+        }
+
+        .group-course {
+            font-size: 18px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .meta {
+            margin: 8px 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #def3f8;
+            color: #0e6271;
+            font-size: 12px;
             font-weight: 700;
         }
-        button.secondary {
-            background: #2b6aa8;
+
+        .tag.new {
+            background: #e7f9ef;
+            color: #1a6d4d;
+            margin-left: 8px;
         }
-        button.warn {
-            background: var(--warn);
+
+        .empty {
+            padding: 12px;
+            border: 1px dashed #bfd2da;
+            border-radius: 12px;
+            color: var(--muted);
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            margin-top: 10px;
+            font-size: 14px;
         }
-        th, td {
-            border: 1px solid var(--line);
+
+        th,
+        td {
+            border: 1px solid #d3e0e6;
             padding: 8px;
             text-align: left;
             vertical-align: top;
         }
+
         th {
-            background: #eef4f8;
+            background: #edf5f8;
+            color: #2c4956;
         }
-        .pill {
-            display: inline-block;
-            border-radius: 999px;
-            padding: 3px 10px;
-            background: #e4f6f0;
-            color: #0a6a50;
-            font-size: 12px;
+
+        .query-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .tiny {
+            color: var(--muted);
+            font-size: 13px;
+            margin: 6px 0 0;
+        }
+
+        .status-line {
+            margin-top: 8px;
+            font-size: 13px;
             font-weight: 700;
         }
-        .error {
-            padding: 10px;
-            border-radius: 8px;
-            background: #fde8e8;
-            color: #812b2b;
-            border: 1px solid #f5b9b9;
-            margin-bottom: 8px;
+
+        .status-line.loading {
+            color: #1d5b83;
         }
-        .message {
-            padding: 10px;
-            border-radius: 8px;
-            background: #e5f7f0;
-            color: #175a43;
-            border: 1px solid #bbead8;
-            margin-bottom: 8px;
+
+        .status-line.info {
+            color: #305060;
         }
-        .muted {
-            color: var(--muted);
-            font-size: 14px;
+
+        .status-line.success {
+            color: #1c6d52;
         }
-        .inline-form {
-            display: inline-block;
-            margin: 0;
+
+        .status-line.error {
+            color: #8f2f28;
         }
-        .inline-form input[type="hidden"] {
-            display: none;
+
+        .tool-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .tool-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 180px;
+            text-decoration: none;
+            font-weight: 800;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #b7cdd8;
+            color: #21414f;
+            background: #f1f8fb;
+        }
+
+        .tool-link:hover {
+            background: #e7f2f7;
+        }
+
+        @media (max-width: 760px) {
+            .topbar {
+                grid-template-columns: 1fr;
+            }
+
+            .chip-wrap {
+                justify-items: start;
+            }
+
+            .tabs {
+                margin-top: 8px;
+            }
+        }
+
+        @keyframes enter {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slide-in {
+            from {
+                opacity: 0;
+                transform: translateX(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Study Group Finder</h1>
-        <p class="muted">Database Systems Project: Flask + MySQL implementation with sessions, updates, and dynamic queries.</p>
+    <div class="shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Campus Collaboration</p>
+                <h1>Study Group Hub</h1>
+                <p class="topbar-sub">Create, discover, and manage study groups without page reloads.</p>
+                <div class="tabs" role="tablist" aria-label="Main tabs">
+                    <button class="tab-btn active" data-tab="home" type="button">Home</button>
+                    <button class="tab-btn" data-tab="user" type="button">User</button>
+                    <button class="tab-btn" data-tab="queries" type="button">Query Lab</button>
+                    <button class="tab-btn" data-tab="tools" type="button">Tools</button>
+                </div>
+            </div>
+            <div class="chip-wrap">
+                <div id="connectionChip" class="chip">Checking connection...</div>
+                <div id="sessionChip" class="chip">Guest mode</div>
+            </div>
+        </header>
 
-        <div class="card">
-            <h2>Connection Status</h2>
-            {% if connection_ok %}
-                <p><span class="pill">Connected</span> Host: {{ config.host }} | Database: {{ config.database }}</p>
-            {% else %}
-                <p><span class="pill" style="background:#fde8e8;color:#812b2b;">Not Connected</span></p>
-                <p class="muted">Set DB_PASS (and optionally DB_HOST, DB_PORT, DB_USER, DB_NAME), or provide credentials in db_credentials.py/db.credentials.py, then refresh.</p>
-            {% endif %}
-            <p class="muted">Setup pages: <a href="{{ url_for('setup') }}">setup</a> and <a href="{{ url_for('test_connection') }}">test connection</a></p>
-        </div>
+        <div id="flashStack" class="flash-stack"></div>
 
-        {% for error in errors %}
-            <div class="error">{{ error }}</div>
-        {% endfor %}
+        <section id="tab-home" class="panel active">
+            <article class="card">
+                <h2>Find Your Next Session</h2>
+                <p class="hero-copy">
+                    Search active groups by course, location, or date. Results update in place, so browsing feels instant.
+                </p>
+                <form id="homeSearchForm" class="form-grid">
+                    <div>
+                        <label for="homeCourseFilter">Course Name or ID</label>
+                        <input id="homeCourseFilter" name="course_filter" type="text" placeholder="447 or Database Systems">
+                    </div>
+                    <div>
+                        <label for="homeLocationFilter">Location Contains</label>
+                        <input id="homeLocationFilter" name="location_filter" type="text" placeholder="Library, Zoom, Hall">
+                    </div>
+                    <div>
+                        <label for="homeMeetingAfter">Meeting After</label>
+                        <input id="homeMeetingAfter" name="meeting_after" type="datetime-local">
+                    </div>
+                    <div>
+                        <button type="submit">Search Groups</button>
+                    </div>
+                </form>
+                <p id="homeRefreshStatus" class="status-line">Ready.</p>
+                <div id="groupFeed" class="group-grid"></div>
+            </article>
+        </section>
 
-        {% for message in messages %}
-            <div class="message">{{ message }}</div>
-        {% endfor %}
+        <section id="tab-user" class="panel">
+            <article class="card">
+                <h2>User Account</h2>
+                <p id="sessionSummary" class="tiny">Checking session...</p>
 
-        <div class="card">
-            <h2>Student Session</h2>
-            {% if not current_student %}
-                <div class="grid">
-                    <form method="post" action="{{ url_for('index') }}">
-                        <input type="hidden" name="action" value="register">
-                        <h3>Register Student</h3>
-                        <label for="reg_student_id">Student ID</label>
-                        <input id="reg_student_id" name="student_id" type="number" min="1" required>
+                <div id="authArea" class="split">
+                    <form id="registerForm">
+                        <h3>Create Student Profile</h3>
+                        <label for="registerStudentId">Student ID</label>
+                        <input id="registerStudentId" name="student_id" type="number" min="1" required>
 
-                        <label for="reg_name">Name</label>
-                        <input id="reg_name" name="name" type="text" maxlength="80" required>
+                        <label for="registerName">Name</label>
+                        <input id="registerName" name="name" type="text" maxlength="80" required>
 
-                        <label for="reg_email">Email</label>
-                        <input id="reg_email" name="email" type="email" maxlength="120" required>
+                        <label for="registerEmail">Email</label>
+                        <input id="registerEmail" name="email" type="email" maxlength="120" required>
 
-                        <label for="reg_major">Major</label>
-                        <input id="reg_major" name="major" type="text" maxlength="80" required>
+                        <label for="registerMajor">Major</label>
+                        <input id="registerMajor" name="major" type="text" maxlength="80" required>
 
                         <button type="submit">Register</button>
                     </form>
 
-                    <form method="post" action="{{ url_for('index') }}">
-                        <input type="hidden" name="action" value="login">
-                        <h3>Login</h3>
-                        <label for="login_student_id">Student ID</label>
-                        <input id="login_student_id" name="student_id" type="number" min="1" required>
+                    <form id="loginForm">
+                        <h3>Sign In</h3>
+                        <label for="loginStudentId">Student ID</label>
+                        <input id="loginStudentId" name="student_id" type="number" min="1" required>
 
-                        <label for="login_email">Email</label>
-                        <input id="login_email" name="email" type="email" maxlength="120" required>
+                        <label for="loginEmail">Email</label>
+                        <input id="loginEmail" name="email" type="email" maxlength="120" required>
 
-                        <button type="submit">Login</button>
+                        <button class="secondary" type="submit">Login</button>
                     </form>
                 </div>
-            {% else %}
-                <p>
-                    <span class="pill">Active Session</span>
-                    {{ current_student.name }}
-                    (student_id {{ current_student.student_id }},
-                    {{ current_student.email }},
-                    major: {{ current_student.major }})
-                </p>
 
-                <div class="grid">
-                    <form method="post" action="{{ url_for('index') }}">
-                        <input type="hidden" name="action" value="update_major">
+                <div id="loggedInArea" class="split" hidden>
+                    <form id="updateMajorForm">
                         <h3>Update Major</h3>
-                        <label for="major">New Major</label>
-                        <input id="major" name="major" type="text" maxlength="80" required>
-                        <button class="secondary" type="submit">Update</button>
+                        <label for="updateMajor">New Major</label>
+                        <input id="updateMajor" name="major" type="text" maxlength="80" required>
+                        <button class="secondary" type="submit">Save Major</button>
                     </form>
 
-                    <form method="post" action="{{ url_for('index') }}">
-                        <input type="hidden" name="action" value="logout">
-                        <h3>Logout Session</h3>
-                        <p class="muted">Ends current session and clears student login.</p>
+                    <form id="logoutForm">
+                        <h3>Sign Out</h3>
+                        <p class="tiny">Ends the active session on this browser.</p>
                         <button class="warn" type="submit">Logout</button>
                     </form>
                 </div>
-            {% endif %}
-        </div>
+            </article>
 
-        <div class="card">
-            <h2>Create Study Group</h2>
-            {% if not current_student %}
-                <p class="muted">Login is required to create groups.</p>
-            {% else %}
-                <form method="post" class="grid" action="{{ url_for('index') }}">
-                    <input type="hidden" name="action" value="create_group">
-
+            <article class="card">
+                <h2>Host A New Group</h2>
+                <p id="createGroupHint" class="tiny">Only logged-in users can host groups. Hosts are automatically added as members.</p>
+                <div id="createGroupGuestNotice" class="empty" hidden>Log in first to host a group.</div>
+                <form id="createGroupForm" class="form-grid">
                     <div>
-                        <label for="course_id">Course</label>
-                        <select id="course_id" name="course_id" required>
+                        <label for="createCourseId">Course</label>
+                        <select id="createCourseId" name="course_id" required>
                             <option value="">Select course</option>
-                            {% for course in courses %}
-                                <option value="{{ course.course_id }}">
-                                    {{ course.course_id }} - {{ course.course_name }}
-                                </option>
-                            {% endfor %}
                         </select>
                     </div>
-
                     <div>
-                        <label for="meeting_time">Meeting Time</label>
-                        <input id="meeting_time" name="meeting_time" type="datetime-local" required>
+                        <label for="createMeetingTime">Meeting Time</label>
+                        <input id="createMeetingTime" name="meeting_time" type="datetime-local" required>
                     </div>
-
                     <div>
-                        <label for="location">Location</label>
-                        <input id="location" name="location" type="text" maxlength="120" required>
+                        <label for="createLocation">Location</label>
+                        <input id="createLocation" name="location" type="text" maxlength="120" required>
                     </div>
-
                     <div style="grid-column: 1 / -1;">
-                        <label for="notes">Notes</label>
-                        <textarea id="notes" name="notes" maxlength="255"></textarea>
+                        <label for="createNotes">Notes</label>
+                        <textarea id="createNotes" name="notes" maxlength="255" placeholder="Focus topics, prep materials, or format."></textarea>
                     </div>
-
                     <div style="grid-column: 1 / -1;">
                         <button type="submit">Create Group</button>
                     </div>
                 </form>
-            {% endif %}
-        </div>
+                <p id="createGroupStatus" class="status-line">No recent create actions.</p>
+            </article>
 
-        <div class="card">
-            <h2>Find Study Groups (Dynamic Query 1)</h2>
-            <form method="get" class="grid" action="{{ url_for('index') }}">
-                <div>
-                    <label for="course_filter">Course Name or ID</label>
-                    <input id="course_filter" name="course_filter" type="text" value="{{ search_course_filter }}">
+            <article class="card">
+                <h2>My Joined Groups</h2>
+                <div id="myGroupsWrap"></div>
+            </article>
+
+            <article class="card">
+                <h2>My Hosted Groups</h2>
+                <div id="myHostedGroupsWrap"></div>
+            </article>
+        </section>
+
+        <section id="tab-queries" class="panel">
+            <article class="card">
+                <h2>Query Lab</h2>
+                <p class="hero-copy">Assignment-style query demos live here so the main hosting flow stays clean.</p>
+                <div class="query-grid">
+                    <section class="card" style="margin: 0;">
+                        <h3>Members By Group</h3>
+                        <form id="membersForm">
+                            <label for="membersGroupId">Group ID</label>
+                            <input id="membersGroupId" name="group_id" type="number" min="1" required>
+                            <button type="submit">Run Query</button>
+                        </form>
+                        <div id="membersResults"></div>
+                    </section>
+
+                    <section class="card" style="margin: 0;">
+                        <h3>Groups By Host</h3>
+                        <form id="hostedForm">
+                            <label for="hostStudentId">Host Student ID</label>
+                            <input id="hostStudentId" name="host_student_id" type="number" min="1" required>
+                            <button class="secondary" type="submit">Run Query</button>
+                        </form>
+                        <div id="hostedResults"></div>
+                    </section>
+
+                    <section class="card" style="margin: 0;">
+                        <h3>Group Size Report</h3>
+                        <form id="reportForm">
+                            <label for="minMembers">Minimum Members</label>
+                            <input id="minMembers" name="min_members" type="number" min="0" value="0" required>
+                            <button type="submit">Run Query</button>
+                        </form>
+                        <div id="reportResults"></div>
+                    </section>
                 </div>
-                <div>
-                    <label for="location_filter">Location Contains</label>
-                    <input id="location_filter" name="location_filter" type="text" value="{{ search_location_filter }}">
+            </article>
+        </section>
+
+        <section id="tab-tools" class="panel">
+            <article class="card">
+                <h2>Operational Tools</h2>
+                <p class="hero-copy">Use these pages for environment checks or schema resets during maintenance.</p>
+                <div class="tool-links">
+                    <a class="tool-link" href="/setup" target="_blank" rel="noopener noreferrer">Open Setup Page</a>
+                    <a class="tool-link" href="/test-connection" target="_blank" rel="noopener noreferrer">Run Connection Test</a>
                 </div>
-                <div>
-                    <label for="meeting_after">Meeting After</label>
-                    <input id="meeting_after" name="meeting_after" type="datetime-local" value="{{ meeting_after_input }}">
-                </div>
-                <div style="grid-column: 1 / -1;">
-                    <button type="submit">Run Search</button>
-                </div>
-            </form>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Group ID</th>
-                        <th>Course</th>
-                        <th>Meeting</th>
-                        <th>Location</th>
-                        <th>Host</th>
-                        <th>Members</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if search_groups|length == 0 %}
-                        <tr><td colspan="7">No groups found.</td></tr>
-                    {% else %}
-                        {% for group in search_groups %}
-                            <tr>
-                                <td>{{ group.group_id }}</td>
-                                <td>{{ group.course_id }} - {{ group.course_name }}</td>
-                                <td>{{ group.meeting_time }}</td>
-                                <td>{{ group.location }}</td>
-                                <td>{{ group.host_name }}</td>
-                                <td>{{ group.member_count }}</td>
-                                <td>
-                                    <a href="{{ url_for('index', members_group_id=group.group_id, host_student_id=selected_host_student, course_filter=search_course_filter, location_filter=search_location_filter, meeting_after=meeting_after_input, min_members=min_members_input) }}">Members</a>
-                                    {% if current_student %}
-                                        <form method="post" class="inline-form" action="{{ url_for('index') }}">
-                                            <input type="hidden" name="action" value="join_group">
-                                            <input type="hidden" name="group_id" value="{{ group.group_id }}">
-                                            <button class="secondary" type="submit">Join</button>
-                                        </form>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="grid">
-            <div class="card">
-                <h2>View Group Members (Dynamic Query 2)</h2>
-                <form method="get" action="{{ url_for('index') }}">
-                    <label for="members_group_id">Group ID</label>
-                    <input id="members_group_id" name="members_group_id" type="number" min="1" value="{{ selected_members_group }}" required>
-                    <input type="hidden" name="host_student_id" value="{{ selected_host_student }}">
-                    <input type="hidden" name="course_filter" value="{{ search_course_filter }}">
-                    <input type="hidden" name="location_filter" value="{{ search_location_filter }}">
-                    <input type="hidden" name="meeting_after" value="{{ meeting_after_input }}">
-                    <input type="hidden" name="min_members" value="{{ min_members_input }}">
-                    <button type="submit">View Members</button>
-                </form>
-
-                <table>
-                    <thead>
-                        <tr><th>Student ID</th><th>Name</th><th>Email</th><th>Major</th></tr>
-                    </thead>
-                    <tbody>
-                        {% if group_members|length == 0 %}
-                            <tr><td colspan="4">No members found or group not selected.</td></tr>
-                        {% else %}
-                            {% for member in group_members %}
-                                <tr>
-                                    <td>{{ member.student_id }}</td>
-                                    <td>{{ member.name }}</td>
-                                    <td>{{ member.email }}</td>
-                                    <td>{{ member.major }}</td>
-                                </tr>
-                            {% endfor %}
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="card">
-                <h2>Groups By Host (Dynamic Query 3)</h2>
-                <form method="get" action="{{ url_for('index') }}">
-                    <label for="host_student_id">Host Student ID</label>
-                    <input id="host_student_id" name="host_student_id" type="number" min="1" value="{{ selected_host_student if selected_host_student else (current_student.student_id if current_student else '') }}" required>
-                    <input type="hidden" name="members_group_id" value="{{ selected_members_group }}">
-                    <input type="hidden" name="course_filter" value="{{ search_course_filter }}">
-                    <input type="hidden" name="location_filter" value="{{ search_location_filter }}">
-                    <input type="hidden" name="meeting_after" value="{{ meeting_after_input }}">
-                    <input type="hidden" name="min_members" value="{{ min_members_input }}">
-                    <button type="submit">View Hosted Groups</button>
-                </form>
-
-                <table>
-                    <thead>
-                        <tr><th>Group ID</th><th>Course</th><th>Meeting</th><th>Location</th></tr>
-                    </thead>
-                    <tbody>
-                        {% if hosted_groups|length == 0 %}
-                            <tr><td colspan="4">No hosted groups found or host not selected.</td></tr>
-                        {% else %}
-                            {% for group in hosted_groups %}
-                                <tr>
-                                    <td>{{ group.group_id }}</td>
-                                    <td>{{ group.course_name }}</td>
-                                    <td>{{ group.meeting_time }}</td>
-                                    <td>{{ group.location }}</td>
-                                </tr>
-                            {% endfor %}
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>My Joined Groups (Dynamic Query 4)</h2>
-            {% if not current_student %}
-                <p class="muted">Login required to view your joined groups.</p>
-            {% else %}
-                <table>
-                    <thead>
-                        <tr><th>Group ID</th><th>Course</th><th>Meeting</th><th>Location</th><th>Host</th><th>Action</th></tr>
-                    </thead>
-                    <tbody>
-                        {% if my_joined_groups|length == 0 %}
-                            <tr><td colspan="6">You have not joined any groups yet.</td></tr>
-                        {% else %}
-                            {% for group in my_joined_groups %}
-                                <tr>
-                                    <td>{{ group.group_id }}</td>
-                                    <td>{{ group.course_name }}</td>
-                                    <td>{{ group.meeting_time }}</td>
-                                    <td>{{ group.location }}</td>
-                                    <td>{{ group.host_name }}</td>
-                                    <td>
-                                        <form method="post" class="inline-form" action="{{ url_for('index') }}">
-                                            <input type="hidden" name="action" value="leave_group">
-                                            <input type="hidden" name="group_id" value="{{ group.group_id }}">
-                                            <button class="warn" type="submit">Leave</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% endif %}
-                    </tbody>
-                </table>
-            {% endif %}
-        </div>
-
-        <div class="card">
-            <h2>Group Size Report (Dynamic Query 5)</h2>
-            <form method="get" class="grid" action="{{ url_for('index') }}">
-                <div>
-                    <label for="min_members">Minimum Group Members</label>
-                    <input id="min_members" name="min_members" type="number" min="0" value="{{ min_members_input if min_members_input else '0' }}">
-                </div>
-                <div>
-                    <input type="hidden" name="members_group_id" value="{{ selected_members_group }}">
-                    <input type="hidden" name="host_student_id" value="{{ selected_host_student }}">
-                    <input type="hidden" name="course_filter" value="{{ search_course_filter }}">
-                    <input type="hidden" name="location_filter" value="{{ search_location_filter }}">
-                    <input type="hidden" name="meeting_after" value="{{ meeting_after_input }}">
-                    <button type="submit">Run Report</button>
-                </div>
-            </form>
-
-            <table>
-                <thead>
-                    <tr><th>Course</th><th>Group ID</th><th>Total Members</th></tr>
-                </thead>
-                <tbody>
-                    {% if group_size_report|length == 0 %}
-                        <tr><td colspan="3">No groups satisfy the current minimum member filter.</td></tr>
-                    {% else %}
-                        {% for row in group_size_report %}
-                            <tr>
-                                <td>{{ row.course_name }}</td>
-                                <td>{{ row.group_id }}</td>
-                                <td>{{ row.member_total }}</td>
-                            </tr>
-                        {% endfor %}
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
+            </article>
+        </section>
     </div>
+
+    <script>
+        (() => {
+            const state = {
+                config: null,
+                currentStudent: null,
+                courses: [],
+                groups: [],
+                myJoinedGroups: [],
+                myHostedGroups: [],
+                recentCreatedGroupId: null,
+            };
+
+            const refs = {};
+
+            document.addEventListener("DOMContentLoaded", init);
+
+            function byId(id) {
+                return document.getElementById(id);
+            }
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/\"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            function formatDate(value) {
+                if (!value) {
+                    return "-";
+                }
+                const date = new Date(String(value).replace(" ", "T"));
+                if (Number.isNaN(date.getTime())) {
+                    return String(value);
+                }
+                return date.toLocaleString();
+            }
+
+            function setConnectionChip(connected) {
+                if (!refs.connectionChip) {
+                    return;
+                }
+
+                refs.connectionChip.classList.remove("connected", "disconnected");
+
+                if (connected) {
+                    refs.connectionChip.classList.add("connected");
+                    if (state.config) {
+                        refs.connectionChip.textContent = `Connected: ${state.config.host} | ${state.config.database}`;
+                    } else {
+                        refs.connectionChip.textContent = "Connected";
+                    }
+                } else {
+                    refs.connectionChip.classList.add("disconnected");
+                    refs.connectionChip.textContent = "Not connected";
+                }
+            }
+
+            function setSessionChip() {
+                if (!refs.sessionChip) {
+                    return;
+                }
+
+                if (!state.currentStudent) {
+                    refs.sessionChip.textContent = "Guest mode";
+                    return;
+                }
+
+                refs.sessionChip.textContent = `Signed in: ${state.currentStudent.name}`;
+            }
+
+            function pushFlash(message, type = "info") {
+                const item = document.createElement("div");
+                item.className = `flash ${type}`;
+                item.textContent = message;
+                refs.flashStack.appendChild(item);
+
+                setTimeout(() => {
+                    item.remove();
+                }, 5000);
+            }
+
+            function clearFlashes() {
+                refs.flashStack.innerHTML = "";
+            }
+
+            function setStatusLine(element, message, kind = "") {
+                if (!element) {
+                    return;
+                }
+                element.classList.remove("loading", "success", "error");
+                if (kind) {
+                    element.classList.add(kind);
+                }
+                element.textContent = message;
+            }
+
+            function showLegacyMessagesFromUrl() {
+                const params = new URLSearchParams(window.location.search);
+                const legacyMessage = params.get("legacy_message");
+                const legacyError = params.get("legacy_error");
+
+                if (legacyMessage) {
+                    pushFlash(legacyMessage, "success");
+                }
+
+                if (legacyError) {
+                    pushFlash(legacyError, "error");
+                }
+
+                if (legacyMessage || legacyError) {
+                    params.delete("legacy_message");
+                    params.delete("legacy_error");
+                    const nextQuery = params.toString();
+                    const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash}`;
+                    window.history.replaceState({}, "", nextUrl);
+                }
+            }
+
+            function buildUrl(path, params = {}) {
+                const url = new URL(path, window.location.origin);
+                Object.entries(params).forEach(([key, value]) => {
+                    if (value !== null && value !== undefined && String(value).trim() !== "") {
+                        url.searchParams.set(key, String(value));
+                    }
+                });
+                return url.toString();
+            }
+
+            async function requestJson(url, options = {}) {
+                const response = await fetch(url, options);
+                let payload;
+
+                try {
+                    payload = await response.json();
+                } catch (_error) {
+                    throw new Error("Server returned an unexpected response.");
+                }
+
+                if (!response.ok || payload.ok === false) {
+                    throw new Error(payload.error || `Request failed (${response.status}).`);
+                }
+
+                return payload;
+            }
+
+            async function apiGet(path, params = {}) {
+                return requestJson(buildUrl(path, params));
+            }
+
+            async function apiPost(path, body) {
+                return requestJson(path, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                });
+            }
+
+            function renderCourseOptions() {
+                refs.createCourseId.innerHTML = "<option value=''>Select course</option>";
+                for (const course of state.courses) {
+                    const option = document.createElement("option");
+                    option.value = String(course.course_id);
+                    option.textContent = `${course.course_id} - ${course.course_name}`;
+                    refs.createCourseId.appendChild(option);
+                }
+            }
+
+            function renderSessionArea() {
+                if (!state.currentStudent) {
+                    refs.sessionSummary.textContent = "You are browsing as a guest. Register or log in to host and join groups.";
+                    refs.authArea.hidden = false;
+                    refs.loggedInArea.hidden = true;
+                    refs.createGroupForm.querySelector("button[type='submit']").disabled = true;
+                    refs.createGroupForm.hidden = true;
+                    refs.createGroupHint.hidden = true;
+                    refs.createGroupGuestNotice.hidden = false;
+                    return;
+                }
+
+                refs.sessionSummary.textContent =
+                    `${state.currentStudent.name} (ID ${state.currentStudent.student_id}) | ${state.currentStudent.email} | major: ${state.currentStudent.major}`;
+                refs.authArea.hidden = true;
+                refs.loggedInArea.hidden = false;
+                refs.createGroupForm.querySelector("button[type='submit']").disabled = false;
+                refs.createGroupForm.hidden = false;
+                refs.createGroupHint.hidden = false;
+                refs.createGroupGuestNotice.hidden = true;
+            }
+
+            function renderGroupFeed() {
+                const joinedIds = new Set((state.myJoinedGroups || []).map((row) => String(row.group_id)));
+
+                if (!state.groups || state.groups.length === 0) {
+                    refs.groupFeed.innerHTML = "<div class='empty'>No groups match your current filters.</div>";
+                    return;
+                }
+
+                refs.groupFeed.innerHTML = state.groups
+                    .map((group) => {
+                        const alreadyJoined = joinedIds.has(String(group.group_id));
+                        const isNew = String(state.recentCreatedGroupId || "") === String(group.group_id);
+                        const actionButton = state.currentStudent
+                            ? `<button type='button' data-action='join' data-group-id='${group.group_id}' ${alreadyJoined ? "disabled" : ""}>${alreadyJoined ? "Joined" : "Join Group"}</button>`
+                            : "<p class='tiny'>Log in to join this group.</p>";
+
+                        return `
+                            <article class="group-card ${isNew ? "newly-created" : ""}">
+                                <p class="group-course">${escapeHtml(group.course_id)} - ${escapeHtml(group.course_name)}</p>
+                                <p class="meta">
+                                    <strong>When:</strong> ${escapeHtml(formatDate(group.meeting_time))}<br>
+                                    <strong>Where:</strong> ${escapeHtml(group.location)}<br>
+                                    <strong>Host:</strong> ${escapeHtml(group.host_name)}
+                                </p>
+                                <div>
+                                    <span class="tag">Members: ${escapeHtml(group.member_count)}</span>
+                                    ${isNew ? "<span class='tag new'>New</span>" : ""}
+                                </div>
+                                <p class="tiny">${escapeHtml(group.notes || "No extra notes yet.")}</p>
+                                ${actionButton}
+                            </article>
+                        `;
+                    })
+                    .join("");
+            }
+
+            function renderMyGroups() {
+                if (!state.currentStudent) {
+                    refs.myGroupsWrap.innerHTML = "<div class='empty'>Log in to view your joined groups.</div>";
+                    return;
+                }
+
+                if (!state.myJoinedGroups || state.myJoinedGroups.length === 0) {
+                    refs.myGroupsWrap.innerHTML = "<div class='empty'>You have not joined any groups yet.</div>";
+                    return;
+                }
+
+                refs.myGroupsWrap.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Group ID</th>
+                                <th>Course</th>
+                                <th>Meeting</th>
+                                <th>Location</th>
+                                <th>Host</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${state.myJoinedGroups
+                                .map(
+                                    (group) => `
+                                <tr>
+                                    <td>${escapeHtml(group.group_id)}</td>
+                                    <td>${escapeHtml(group.course_name)}</td>
+                                    <td>${escapeHtml(formatDate(group.meeting_time))}</td>
+                                    <td>${escapeHtml(group.location)}</td>
+                                    <td>${escapeHtml(group.host_name)}</td>
+                                    <td><button type="button" class="warn" data-action="leave" data-group-id="${group.group_id}">Leave</button></td>
+                                </tr>
+                            `
+                                )
+                                .join("")}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            function renderMyHostedGroups() {
+                if (!state.currentStudent) {
+                    refs.myHostedGroupsWrap.innerHTML = "<div class='empty'>Log in to view groups you host.</div>";
+                    return;
+                }
+
+                if (!state.myHostedGroups || state.myHostedGroups.length === 0) {
+                    refs.myHostedGroupsWrap.innerHTML = "<div class='empty'>You are not hosting any groups yet.</div>";
+                    return;
+                }
+
+                refs.myHostedGroupsWrap.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Group ID</th>
+                                <th>Course</th>
+                                <th>Meeting</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${state.myHostedGroups
+                                .map(
+                                    (group) => `
+                                <tr>
+                                    <td>${escapeHtml(group.group_id)}</td>
+                                    <td>${escapeHtml(group.course_name)}</td>
+                                    <td>${escapeHtml(formatDate(group.meeting_time))}</td>
+                                    <td>${escapeHtml(group.location)}</td>
+                                </tr>
+                            `
+                                )
+                                .join("")}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            function renderMembersResults(rows) {
+                if (!rows || rows.length === 0) {
+                    refs.membersResults.innerHTML = "<div class='empty'>No members found for that group.</div>";
+                    return;
+                }
+
+                refs.membersResults.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr><th>Student ID</th><th>Name</th><th>Email</th><th>Major</th></tr>
+                        </thead>
+                        <tbody>
+                            ${rows
+                                .map(
+                                    (row) => `
+                                <tr>
+                                    <td>${escapeHtml(row.student_id)}</td>
+                                    <td>${escapeHtml(row.name)}</td>
+                                    <td>${escapeHtml(row.email)}</td>
+                                    <td>${escapeHtml(row.major)}</td>
+                                </tr>
+                            `
+                                )
+                                .join("")}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            function renderHostedResults(rows) {
+                if (!rows || rows.length === 0) {
+                    refs.hostedResults.innerHTML = "<div class='empty'>No hosted groups found for that host ID.</div>";
+                    return;
+                }
+
+                refs.hostedResults.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr><th>Group ID</th><th>Course</th><th>Meeting</th><th>Location</th></tr>
+                        </thead>
+                        <tbody>
+                            ${rows
+                                .map(
+                                    (row) => `
+                                <tr>
+                                    <td>${escapeHtml(row.group_id)}</td>
+                                    <td>${escapeHtml(row.course_name)}</td>
+                                    <td>${escapeHtml(formatDate(row.meeting_time))}</td>
+                                    <td>${escapeHtml(row.location)}</td>
+                                </tr>
+                            `
+                                )
+                                .join("")}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            function renderReportResults(rows) {
+                if (!rows || rows.length === 0) {
+                    refs.reportResults.innerHTML = "<div class='empty'>No groups meet this minimum member threshold.</div>";
+                    return;
+                }
+
+                refs.reportResults.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr><th>Course</th><th>Group ID</th><th>Total Members</th></tr>
+                        </thead>
+                        <tbody>
+                            ${rows
+                                .map(
+                                    (row) => `
+                                <tr>
+                                    <td>${escapeHtml(row.course_name)}</td>
+                                    <td>${escapeHtml(row.group_id)}</td>
+                                    <td>${escapeHtml(row.member_total)}</td>
+                                </tr>
+                            `
+                                )
+                                .join("")}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            function activateTab(tabName) {
+                document.querySelectorAll(".tab-btn").forEach((button) => {
+                    button.classList.toggle("active", button.dataset.tab === tabName);
+                });
+
+                document.querySelectorAll(".panel").forEach((panel) => {
+                    panel.classList.toggle("active", panel.id === `tab-${tabName}`);
+                });
+            }
+
+            async function loadBootstrap() {
+                const payload = await apiGet("/api/bootstrap");
+                state.config = payload.config || null;
+                state.currentStudent = payload.current_student || null;
+                state.courses = payload.courses || [];
+                state.groups = payload.groups || [];
+                state.myJoinedGroups = payload.my_joined_groups || [];
+                state.myHostedGroups = [];
+
+                if (state.currentStudent) {
+                    try {
+                        const hostedPayload = await apiGet("/api/hosted-groups", {
+                            host_student_id: state.currentStudent.student_id,
+                        });
+                        state.myHostedGroups = hostedPayload.hosted_groups || [];
+                    } catch (_error) {
+                        state.myHostedGroups = [];
+                    }
+                }
+
+                setConnectionChip(true);
+                setSessionChip();
+                renderCourseOptions();
+                renderSessionArea();
+                renderGroupFeed();
+                renderMyGroups();
+                renderMyHostedGroups();
+            }
+
+            async function refreshMyGroups() {
+                const payload = await apiGet("/api/my-groups");
+                state.myJoinedGroups = payload.my_joined_groups || [];
+
+                if (state.currentStudent) {
+                    const hostedPayload = await apiGet("/api/hosted-groups", {
+                        host_student_id: state.currentStudent.student_id,
+                    });
+                    state.myHostedGroups = hostedPayload.hosted_groups || [];
+                } else {
+                    state.myHostedGroups = [];
+                }
+
+                renderMyGroups();
+                renderMyHostedGroups();
+                renderGroupFeed();
+            }
+
+            async function runHomeSearch() {
+                setStatusLine(refs.homeRefreshStatus, "Refreshing group feed...", "loading");
+                const payload = await apiGet("/api/search-groups", {
+                    course_filter: refs.homeCourseFilter.value,
+                    location_filter: refs.homeLocationFilter.value,
+                    meeting_after: refs.homeMeetingAfter.value,
+                });
+                state.groups = payload.groups || [];
+                renderGroupFeed();
+                setStatusLine(
+                    refs.homeRefreshStatus,
+                    `Updated ${state.groups.length} group${state.groups.length === 1 ? "" : "s"} at ${new Date().toLocaleTimeString()}.`,
+                    "success"
+                );
+            }
+
+            function bindEvents() {
+                document.querySelectorAll(".tab-btn").forEach((button) => {
+                    button.addEventListener("click", () => {
+                        activateTab(button.dataset.tab || "home");
+                    });
+                });
+
+                refs.homeSearchForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    try {
+                        await runHomeSearch();
+                    } catch (error) {
+                        setStatusLine(refs.homeRefreshStatus, error.message, "error");
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.groupFeed.addEventListener("click", async (event) => {
+                    const target = event.target;
+                    if (!(target instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    if (target.dataset.action !== "join") {
+                        return;
+                    }
+
+                    const groupId = target.dataset.groupId;
+                    if (!groupId) {
+                        return;
+                    }
+
+                    try {
+                        const payload = await apiPost("/api/join-group", { group_id: groupId });
+                        pushFlash(payload.message || "Joined group.", "success");
+                        await refreshMyGroups();
+                        setStatusLine(refs.homeRefreshStatus, "Joined group and refreshed data.", "success");
+                    } catch (error) {
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.myGroupsWrap.addEventListener("click", async (event) => {
+                    const target = event.target;
+                    if (!(target instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    if (target.dataset.action !== "leave") {
+                        return;
+                    }
+
+                    const groupId = target.dataset.groupId;
+                    if (!groupId) {
+                        return;
+                    }
+
+                    try {
+                        const payload = await apiPost("/api/leave-group", { group_id: groupId });
+                        pushFlash(payload.message || "Left group.", "success");
+                        await refreshMyGroups();
+                        setStatusLine(refs.homeRefreshStatus, "Left group and refreshed data.", "success");
+                    } catch (error) {
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.registerForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    const form = new FormData(refs.registerForm);
+                    try {
+                        const payload = await apiPost("/api/register", {
+                            student_id: form.get("student_id"),
+                            name: form.get("name"),
+                            email: form.get("email"),
+                            major: form.get("major"),
+                        });
+                        pushFlash(payload.message || "Registered.", "success");
+                        refs.registerForm.reset();
+                    } catch (error) {
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.loginForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    const form = new FormData(refs.loginForm);
+                    try {
+                        const payload = await apiPost("/api/login", {
+                            student_id: form.get("student_id"),
+                            email: form.get("email"),
+                        });
+                        pushFlash(payload.message || "Login successful.", "success");
+                        refs.loginForm.reset();
+                        await loadBootstrap();
+                        setStatusLine(refs.createGroupStatus, "Ready to create a group.", "success");
+                    } catch (error) {
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.logoutForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    try {
+                        const payload = await apiPost("/api/logout", {});
+                        pushFlash(payload.message || "Logged out.", "success");
+                        await loadBootstrap();
+                        setStatusLine(refs.createGroupStatus, "Login required to create a group.", "info");
+                    } catch (error) {
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.updateMajorForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    const form = new FormData(refs.updateMajorForm);
+                    try {
+                        const payload = await apiPost("/api/update-major", { major: form.get("major") });
+                        pushFlash(payload.message || "Major updated.", "success");
+                        refs.updateMajorForm.reset();
+                        await loadBootstrap();
+                    } catch (error) {
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.createGroupForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    const form = new FormData(refs.createGroupForm);
+
+                    setStatusLine(refs.createGroupStatus, "Creating group...", "loading");
+
+                    try {
+                        const payload = await apiPost("/api/create-group", {
+                            course_id: form.get("course_id"),
+                            meeting_time: form.get("meeting_time"),
+                            location: form.get("location"),
+                            notes: form.get("notes"),
+                        });
+                        state.recentCreatedGroupId = payload.group_id || null;
+                        pushFlash(payload.message || "Group created.", "success");
+                        refs.createGroupForm.reset();
+                        refs.homeCourseFilter.value = "";
+                        refs.homeLocationFilter.value = "";
+                        refs.homeMeetingAfter.value = "";
+                        await Promise.all([runHomeSearch(), refreshMyGroups()]);
+                        setStatusLine(refs.createGroupStatus, `Created group ${payload.group_id}. Lists refreshed.`, "success");
+                    } catch (error) {
+                        setStatusLine(refs.createGroupStatus, error.message, "error");
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.membersForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    const form = new FormData(refs.membersForm);
+                    try {
+                        const payload = await apiGet("/api/group-members", { group_id: form.get("group_id") });
+                        renderMembersResults(payload.group_members || []);
+                    } catch (error) {
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.hostedForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    const form = new FormData(refs.hostedForm);
+                    try {
+                        const payload = await apiGet("/api/hosted-groups", {
+                            host_student_id: form.get("host_student_id"),
+                        });
+                        renderHostedResults(payload.hosted_groups || []);
+                    } catch (error) {
+                        pushFlash(error.message, "error");
+                    }
+                });
+
+                refs.reportForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    const form = new FormData(refs.reportForm);
+                    try {
+                        const payload = await apiGet("/api/group-size-report", {
+                            min_members: form.get("min_members"),
+                        });
+                        renderReportResults(payload.group_size_report || []);
+                    } catch (error) {
+                        pushFlash(error.message, "error");
+                    }
+                });
+            }
+
+            async function init() {
+                refs.connectionChip = byId("connectionChip");
+                refs.sessionChip = byId("sessionChip");
+                refs.flashStack = byId("flashStack");
+                refs.homeSearchForm = byId("homeSearchForm");
+                refs.homeCourseFilter = byId("homeCourseFilter");
+                refs.homeLocationFilter = byId("homeLocationFilter");
+                refs.homeMeetingAfter = byId("homeMeetingAfter");
+                refs.groupFeed = byId("groupFeed");
+                refs.authArea = byId("authArea");
+                refs.loggedInArea = byId("loggedInArea");
+                refs.sessionSummary = byId("sessionSummary");
+                refs.registerForm = byId("registerForm");
+                refs.loginForm = byId("loginForm");
+                refs.logoutForm = byId("logoutForm");
+                refs.updateMajorForm = byId("updateMajorForm");
+                refs.createGroupForm = byId("createGroupForm");
+                refs.createCourseId = byId("createCourseId");
+                refs.myGroupsWrap = byId("myGroupsWrap");
+                refs.membersForm = byId("membersForm");
+                refs.membersResults = byId("membersResults");
+                refs.hostedForm = byId("hostedForm");
+                refs.hostedResults = byId("hostedResults");
+                refs.reportForm = byId("reportForm");
+                refs.reportResults = byId("reportResults");
+                refs.homeRefreshStatus = byId("homeRefreshStatus");
+                refs.createGroupStatus = byId("createGroupStatus");
+                refs.createGroupGuestNotice = byId("createGroupGuestNotice");
+                refs.createGroupHint = byId("createGroupHint");
+                refs.myHostedGroupsWrap = byId("myHostedGroupsWrap");
+
+                bindEvents();
+                clearFlashes();
+                showLegacyMessagesFromUrl();
+                setStatusLine(refs.homeRefreshStatus, "Ready.", "info");
+                setStatusLine(refs.createGroupStatus, "No recent create actions.", "info");
+
+                try {
+                    await loadBootstrap();
+                } catch (error) {
+                    setConnectionChip(false);
+                    setSessionChip();
+                    setStatusLine(refs.homeRefreshStatus, "Unable to fetch groups right now.", "error");
+                    pushFlash(error.message, "error");
+                }
+            }
+        })();
+    </script>
 </body>
 </html>
