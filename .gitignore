@@ -1,5 +1,4 @@
-db.credentials.php
-db_credentials.py
+db.credentials.py
 __pycache__/
 .venv/
 venv/
